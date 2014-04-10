@@ -102,7 +102,8 @@
     (future (sh/stream-to-out proc :out))
     (future (sh/stream-to-out proc :err))
     (let [exit (future (sh/exit-code proc))]
-      (println "exit:" @exit))))
+      (println "exit:" @exit)
+      (main/exit @exit))))
 
 (defn setup-exec [jarbin-project {:keys [coord bin bin-args]}]
   (let [project-dir (create-temp-dir "jarbin")
