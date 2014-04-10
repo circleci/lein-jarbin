@@ -114,7 +114,7 @@
     (extract-file-from-jar jar-path project-dir (bin-path-in-jar target-project bin))
     (sh/sh "chmod" "+x" bin-path)
     {:dir project-dir
-     :env (resolve-lein-env-vars target-project bin)
+     :env (merge (into {} (System/getenv)) (resolve-lein-env-vars target-project jarbin-env-vars bin))
      :cmd (concat [bin-path] bin-args)}))
 
 (defn ^:no-project-needed ^:higher-order jarbin
