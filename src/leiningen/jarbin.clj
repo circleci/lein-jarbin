@@ -64,12 +64,13 @@
 
 (defn resolve-lein-env-vars
   "Returns a map of env vars and their resolved values"
-  [project script-name]
+  [project jarbin-env-vars script-name]
   (->> (get-in project [:jarbin :scripts script-name :env])
        (map (fn [[k v]]
-              (if (and (keyword? v) (= "lein" (namespace v)))
-                [(name k) (resolve-lein-env-var project v)]
-                [(name k) v])))
+              (cond
+               (and (keyword? v) (= "lein" (namespace v))) [(name k) (resolve-lein-env-var project v)]
+               (and (keyword? v) (= "jarbin" (namespace v))) [(name k) (get jarbin-env-vars (name v))]
+               :else [(name k) v])))
        (into {})))
 
 (defn parse-coord [args]
@@ -95,7 +96,6 @@
   [project bin-name]
   (let [bin-path (get-in project [:jarbin :bin-dir] "bin")]
     (str bin-path "/" bin-name)))
-
 
 (defn exec [{:keys [env dir cmd] :as args}]
   (let [resp (apply sh/sh (concat cmd [:dir dir :env env]))]

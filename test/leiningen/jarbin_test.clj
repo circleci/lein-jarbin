@@ -19,18 +19,22 @@
                    :jarbin {:scripts {:bbq {:env {:FOO "bar"
                                                   :NAME :lein/name
                                                   :VERSION :lein/version
-                                                  :JVM_OPTS :lein/jvm-opts}}}}})
+                                                  :JVM_OPTS :lein/jvm-opts
+                                                  :JAR_PATH :jarbin/jar-path
+                                                  :COORD :jarbin/coord}}}}})
 
 (deftest resolve-single-lein-env-var
   (is (= "foo" (jarbin/resolve-lein-env-var test-project :lein/name)))
   (is (= "-server -Xmx1024m" (jarbin/resolve-lein-env-var test-project :lein/jvm-opts))))
 
 (deftest env-map-works
-  (let [resp (jarbin/resolve-lein-env-vars test-project :bbq)]
+  (let [resp (jarbin/resolve-lein-env-vars test-project {} :bbq)]
     (is (= "bar" (get resp "FOO")))
     (is (= "1.2.3" (get resp "VERSION")))))
 
-
+(deftest env-map-exposes-jarbin
+  (let [resp (jarbin/resolve-lein-env-vars test-project {"jar-path" "/foo/bar"} :bbq)]
+    (is (= "/foo/bar" (get resp "JAR_PATH")))))
 
 (deftest parse-args-doesnt-throw
   (jarbin/parse-args []))
