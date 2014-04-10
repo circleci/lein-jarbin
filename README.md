@@ -7,7 +7,7 @@ This can be used for e.g. complicated system startup procedures, or daemonizing.
 
 ## Usage
 
-Put `[lein-jarbin "0.1.0-SNAPSHOT"]` into the `:plugins` vector of your project.clj.
+`:plugins [[circleci/lein-jarbin "0.1.0"]]`
 
     $ lein jarbin [foo/bar "1.2.3"] bbq.sh
     $ lein jarbin ./foo-bar-1.2.3.jar bbq.sh
@@ -33,9 +33,16 @@ Environment variables can be specified in the project.clj:
 
 Environment variables with the 'lein' namespace, like :lein/name will take their values from the same key in the project.clj
 
+There are a few more 'special' env vars:
+ - :jarbin/coord, the coordinate passed to jarbin, i.e. "[foo/bar 1.2.3]"
+ - :jarbin/jar-path, the path to the resolved jar
+
 ## Limitations
 Jarbin creates a temp directory, containing your project.clj and the script. Due to races, and jarbin not knowing when you're 'done' with the code, it never cleans up the temp directory.
 
+## See Also
+
+lein-jartask. Very similar, but runs lein tasks, rather than scripts
 
 ## License
 
