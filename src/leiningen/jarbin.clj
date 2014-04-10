@@ -43,13 +43,11 @@
   (str (Files/createTempDirectory "foo" empty-file-attrs)))
 
 (defn extract-file-from-jar [jar dest-dir filename]
-  (println "extract-file-from-jar: jar=" jar filename)
   (with-open [jar (JarFile. jar)]
     (let [entry (.getEntry jar filename)
           dest-name (.getName entry)
           dest-file (File. (str dest-dir File/separator dest-name))
           dest-path (.toPath dest-file)]
-      (println "extract-file: dest-path=" dest-path)
       (Files/createDirectories (.getParent dest-path) empty-file-attrs)
       (with-open [i (.getInputStream jar entry)]
         (io/copy i dest-file)))))
@@ -112,7 +110,6 @@
   (assert false))
 
 (defn exec [{:keys [env dir cmd] :as args}]
-  (println "exec:" args)
   (let [resp (apply sh/sh (concat cmd [:dir dir :env env]))]
     (println resp)))
 
