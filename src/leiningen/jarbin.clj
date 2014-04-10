@@ -4,8 +4,8 @@
             [cemerick.pomegranate.aether :as aether]
             [clojure.string :as str]
             [clojure.pprint :refer (pprint)]
-            [clojure.java.shell :as sh]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [me.raynes.conch.low-level :as sh])
   (:import java.util.jar.JarFile
            (java.io PushbackReader
                     StringReader
@@ -98,8 +98,11 @@
     (str bin-path "/" bin-name)))
 
 (defn exec [{:keys [env dir cmd] :as args}]
-  (let [resp (apply sh/sh (concat cmd [:dir dir :env env]))]
-    (println resp)))
+  (let [proc (apply sh/proc (concat cmd [:dir (str dir) :env env]))]
+    (future (sh/stream-to-out proc :out))
+    (future (sh/stream-to-out proc :err))
+    (let [exit (future (sh/exit-code proc))]
+      (println "exit:" @exit))))
 
 (defn setup-exec [jarbin-project {:keys [coord bin bin-args]}]
   (let [project-dir (create-temp-dir "jarbin")
@@ -109,10 +112,10 @@
         project-path (str/join "/" [project-dir "project.clj"])
         target-project (project/read project-path)
         bin-path (str/join "/" [project-dir (bin-path-in-jar target-project bin)])
-        jarbin-env-vars {"jar-path" jar-path
-                         "coord" coord}]
+        jarbin-env-vars {"jar-path" (str jar-path)
+                         "coord" (str coord)}]
     (extract-file-from-jar jar-path project-dir (bin-path-in-jar target-project bin))
-    (sh/sh "chmod" "+x" bin-path)
+    (sh/proc "chmod" "+x" (str bin-path))
     {:dir project-dir
      :env (merge (into {} (System/getenv)) (resolve-lein-env-vars target-project jarbin-env-vars bin))
      :cmd (concat [bin-path] bin-args)}))
