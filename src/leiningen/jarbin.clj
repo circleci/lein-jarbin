@@ -79,14 +79,6 @@
        :bin (first rest-args)
        :bin-args (rest rest-args)})))
 
-(defn parse-local-jar [args]
-  (when-let [[_ jar-path rest-args] (re-find #"^(.+\.jar) (.+)" (str/join " " args))]
-    (println "jar-path:" jar-path)
-    (let [rest-args (str/split (str/trim rest-args) #" ")]
-      (println "rest-args:" rest-args)
-      {:jar-path jar-path
-       :bin (first rest-args)
-       :bin-args (rest rest-args)})))
 
 (defn parse-local-src [args]
   (when-let [[_ local-src rest-args] (re-find #"^(\.) (.+)" (str/join " " args))]
@@ -96,9 +88,7 @@
        :bin-args (rest rest-args)})))
 
 (defn parse-args [args]
-  (or (parse-coord args)
-      (parse-local-jar args)
-      (parse-local-src args)))
+  (parse-coord args))
 
 (defn bin-path-in-jar
   "Given the name of a script, return the in-jar location of the bin"
@@ -106,34 +96,23 @@
   (let [bin-path (get-in project [:jarbin :bin-dir] "bin")]
     (str bin-path "/" bin-name)))
 
-(defn bin-path-local [project bin-name]
-  (assert false))
 
 (defn exec [{:keys [env dir cmd] :as args}]
   (let [resp (apply sh/sh (concat cmd [:dir dir :env env]))]
     (println resp)))
 
-(defn setup-exec [jarbin-project {:keys [coord jar-path local-src bin bin-args]}]
-  (let [jar? (or coord jar-path)
-        project-dir (if jar?
-                  (create-temp-dir "jarbin")
-                  local-src)
-        jar-path (cond
-                  coord (resolve-jar-path jarbin-project coord)
-                  jar-path jar-path
-                  :else nil)
-        project-path (if jar-path
-                       (do
-                         (extract-file-from-jar jar-path project-dir "project.clj")
-                         (str/join "/" [project-dir "project.clj"]))
-                       "./project.clj")
+(defn setup-exec [jarbin-project {:keys [coord bin bin-args]}]
+  (let [project-dir (create-temp-dir "jarbin")
+        jar-path (resolve-jar-path jarbin-project coord)
+        _ (assert jar-path)
+        _ (extract-file-from-jar jar-path project-dir "project.clj")
+        project-path (str/join "/" [project-dir "project.clj"])
         target-project (project/read project-path)
-        bin-path (if jar-path
-                   (str/join "/" [project-dir (bin-path-in-jar target-project bin)])
-                   (bin-path-local target-project bin))]
-    (when jar-path
-      (extract-file-from-jar jar-path project-dir (bin-path-in-jar target-project bin))
-      (sh/sh "chmod" "+x" bin-path))
+        bin-path (str/join "/" [project-dir (bin-path-in-jar target-project bin)])
+        jarbin-env-vars {"jar-path" jar-path
+                         "coord" coord}]
+    (extract-file-from-jar jar-path project-dir (bin-path-in-jar target-project bin))
+    (sh/sh "chmod" "+x" bin-path)
     {:dir project-dir
      :env (resolve-lein-env-vars target-project bin)
      :cmd (concat [bin-path] bin-args)}))
@@ -144,8 +123,6 @@
   Usage:
 
   lein jarbin [foo/bar \"1.2.3\"] bbq
-  lein jarbin foo-bar-1.2.3.jar bbq
-  lein jarbin . bbq
 "
   [project & args]
   (as-> args %

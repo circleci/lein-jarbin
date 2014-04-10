@@ -9,17 +9,7 @@
   (testing "coord"
     (is (= {:coord '[foo/bar "1.2.3"]
             :bin "bbq"
-            :bin-args ["baz" "1"]}) (jarbin/parse-args ["[foo/bar" "1.2.3]" "bbq" "baz" "1"])))
-  (testing "jarpath"
-    (is (= {:jar-path "/users/foo/.m2/repository/foo/bar.jar"
-            :bin "bbq"
-            :bin-args ["baz"]}
-           (jarbin/parse-args ["/users/foo/.m2/repository/foo/bar.jar" "bbq" "baz"]) )))
-  (testing "local src"
-    (is (= {:local-src "."
-            :bin "bbq"
-            :bin-args ["baz"]}
-           (jarbin/parse-args ["." "bbq" "baz"]) ))))
+            :bin-args ["baz" "1"]}) (jarbin/parse-args ["[foo/bar" "1.2.3]" "bbq" "baz" "1"]))))
 
 (def test-project {:name "foo"
                    :group "bar"
