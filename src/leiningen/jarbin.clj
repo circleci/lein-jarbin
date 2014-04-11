@@ -53,8 +53,10 @@
         (io/copy i dest-file)))))
 
 (defn parse-coord-str [coord-str]
-  (let [[_ name version] (re-find #"\[([./\w]+) (.+)\]" coord-str)]
-    [(symbol name) (str version)]))
+  (let [[_ name version] (re-find #"\[([-./\w]+) (.+)\]" coord-str)]
+    (if name
+      [(symbol name) (str version)]
+      (throw (Exception. (format "couldn't parse %s" coord-str))))))
 
 (defn resolve-lein-env-var [project v]
   (let [resp (get project (keyword (name v)))]

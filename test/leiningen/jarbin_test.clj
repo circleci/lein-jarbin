@@ -3,7 +3,8 @@
             [leiningen.jarbin :as jarbin]))
 
 (deftest parse-coord-works
-  (is (= '[foo/bar "1.2.3"] (jarbin/parse-coord-str "[foo/bar 1.2.3]"))))
+  (is (= '[foo/bar "1.2.3"] (jarbin/parse-coord-str "[foo/bar 1.2.3]")))
+  (is (= '[foo/bar-bar "1.2.3"] (jarbin/parse-coord-str "[foo/bar-bar 1.2.3]"))))
 
 (deftest parse-args-works
   (testing "coord"
