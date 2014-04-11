@@ -100,12 +100,14 @@
     (str bin-path "/" bin-name)))
 
 (defn exec [{:keys [env dir cmd] :as args}]
-  (let [proc (apply sh/proc (concat cmd [:dir (str dir) :env env]))]
-    (future (sh/stream-to-out proc :out))
-    (future (sh/stream-to-out proc :err))
-    (let [exit (future (sh/exit-code proc))]
-      (println "exit:" @exit)
-      (main/exit @exit))))
+  (let [proc (apply sh/proc (concat cmd [:dir (str dir) :env env]))
+        stdout (future (sh/stream-to-out proc :out))
+        stderr (future (sh/stream-to-out proc :err))
+        exit (future (sh/exit-code proc))]
+    (println "exit:" @exit)
+    @stdout
+    @stderr
+    (main/exit @exit)))
 
 (defn setup-exec [jarbin-project {:keys [coord bin bin-args]}]
   (let [project-dir (create-temp-dir "jarbin")
