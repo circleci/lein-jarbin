@@ -142,7 +142,8 @@
   lein jarbin ./foo-bar-1.2.3.jar bbq
 "
   [project & args]
-  (as-> args %
-      (parse-args %)
-      (setup-exec project %)
-      (exec %)))
+  (when (not-empty args)
+    (as-> args %
+        (parse-args %)
+        (setup-exec project %)
+        (exec %))))
