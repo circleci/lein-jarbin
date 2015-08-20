@@ -11,9 +11,8 @@ This can be used for e.g. complicated system startup procedures, or daemonizing.
 
     $ lein jarbin [foo/bar "1.2.3"] bbq.sh
     $ lein jarbin ./foo-bar-1.2.3.jar bbq.sh
-    $ lein jarbin . bbq.sh
 
-Will run the script in resources/bin/bbq.sh, in the jar, or the local project source tree.
+Will run the script in resources/bin/bbq.sh, or in the jar.
 
 In the first usage, jarbin will download the jar if necessary. The jar should be resolvable from standard jar locations, or add a repo to your ~/.lein/profiles.clj
 

@@ -36,6 +36,3 @@
 (deftest env-map-exposes-jarbin
   (let [resp (jarbin/resolve-lein-env-vars test-project {"jar-path" "/foo/bar"} :bbq)]
     (is (= "/foo/bar" (get resp "JAR_PATH")))))
-
-(deftest parse-args-doesnt-throw
-  (jarbin/parse-args []))

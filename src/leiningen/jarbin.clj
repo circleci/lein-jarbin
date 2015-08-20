@@ -83,15 +83,23 @@
        :bin-args (rest rest-args)})))
 
 
+(defn parse-local-jar [args]
+  (when-let [path (first args)]
+    (when (.isFile (File. path))
+      {:local-jar path
+       :bin (second args)
+       :bin-args (drop 2 args)})))
+
 (defn parse-local-src [args]
-  (when-let [[_ local-src rest-args] (re-find #"^(\.) (.+)" (str/join " " args))]
-    (let [rest-args (str/split (str/trim rest-args) #" ")]
-      {:local-src local-src
-       :bin (first rest-args)
-       :bin-args (rest rest-args)})))
+  (when (= "." (first args))
+    {:local-src (first args)
+     :bin (second args)
+     :bin-args (drop 2 args)}))
 
 (defn parse-args [args]
-  (parse-coord args))
+  (or (parse-coord args)
+      (parse-local-jar args)
+      (throw (Exception. (str "Unsupported jar path: " (first args))))))
 
 (defn bin-path-in-jar
   "Given the name of a script, return the in-jar location of the bin"
@@ -109,9 +117,9 @@
     @stderr
     (main/exit @exit)))
 
-(defn setup-exec [jarbin-project {:keys [coord bin bin-args]}]
+(defn setup-exec [jarbin-project {:keys [local-jar coord bin bin-args]}]
   (let [project-dir (create-temp-dir "jarbin")
-        jar-path (resolve-jar-path jarbin-project coord)
+        jar-path (or local-jar (resolve-jar-path jarbin-project coord))
         _ (assert jar-path)
         _ (extract-file-from-jar jar-path project-dir "project.clj")
         project-path (str/join "/" [project-dir "project.clj"])
@@ -131,9 +139,11 @@
   Usage:
 
   lein jarbin [foo/bar \"1.2.3\"] bbq
+  lein jarbin ./foo-bar-1.2.3.jar bbq
 "
   [project & args]
-  (as-> args %
-      (parse-args %)
-      (setup-exec project %)
-      (exec %)))
+  (when (not-empty args)
+    (as-> args %
+        (parse-args %)
+        (setup-exec project %)
+        (exec %))))
