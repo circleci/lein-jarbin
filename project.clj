@@ -1,4 +1,4 @@
-(defproject circleci/lein-jarbin "0.1.3"
+(defproject circleci/lein-jarbin "0.1.3-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
